@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { supabase, getVoterKey, hasBackend } from './supabase.js'
+import { supabase, hasBackend } from './supabase.js'
 import { DEMO_SUGGESTIONS } from './demoData.js'
 
 const CATEGORIES = [
@@ -29,12 +29,14 @@ export default function App() {
   const [session, setSession] = useState(null)
   const [isAdmin, setIsAdmin] = useState(false)
   const [error, setError] = useState('')
+  const [showLogin, setShowLogin] = useState(false)
+  const [emailSent, setEmailSent] = useState('')
 
   // ---------- auth ----------
   useEffect(() => {
     if (!hasBackend) return
     supabase.auth.getSession().then(({ data }) => setSession(data.session))
-    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => setSession(s))
+    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => { setSession(s); if (s) setShowLogin(false) })
     return () => sub.subscription.unsubscribe()
   }, [])
 
@@ -44,9 +46,24 @@ export default function App() {
       .then(({ data }) => setIsAdmin(!!data && data.length > 0))
   }, [session])
 
-  const signIn = () => {
+  const requireLogin = () => {
+    if (!hasBackend) { setError('Demo mode — sign-in works once Supabase is connected.'); return false }
+    if (!session) { setEmailSent(''); setShowLogin(true); return false }
+    return true
+  }
+  const signInDiscord = () => {
     if (!hasBackend) { setError('Demo mode — Discord login works once Supabase is connected.'); return }
     supabase.auth.signInWithOAuth({ provider: 'discord', options: { redirectTo: window.location.origin } })
+  }
+  async function signInEmail(e) {
+    e.preventDefault()
+    const email = String(new FormData(e.target).get('email') || '').trim()
+    if (!email) return
+    const { error: err } = await supabase.auth.signInWithOtp({
+      email, options: { emailRedirectTo: window.location.origin },
+    })
+    if (err) setError('Email login failed: ' + err.message)
+    else setEmailSent(email)
   }
   const signOut = () => supabase.auth.signOut()
 
@@ -68,10 +85,13 @@ export default function App() {
     if (err) setError(err.message)
     else setSuggestions(data || [])
 
-    const voterKey = session?.user?.id || getVoterKey()
-    const { data: votes } = await supabase
-      .from('votes').select('suggestion_id').eq('voter_key', voterKey)
-    setMyVotes(new Set((votes || []).map(v => v.suggestion_id)))
+    if (session) {
+      const { data: votes } = await supabase
+        .from('votes').select('suggestion_id').eq('voter_key', session.user.id)
+      setMyVotes(new Set((votes || []).map(v => v.suggestion_id)))
+    } else {
+      setMyVotes(new Set())
+    }
     setLoading(false)
   }, [session])
 
@@ -80,15 +100,15 @@ export default function App() {
   // ---------- actions ----------
   async function vote(s) {
     if (myVotes.has(s.id)) return
+    if (hasBackend && !session) { requireLogin(); return }
     // optimistic
     setMyVotes(prev => new Set(prev).add(s.id))
     setSuggestions(prev => prev.map(x => x.id === s.id ? { ...x, votes_count: x.votes_count + 1 } : x))
     if (!hasBackend) return // demo: local only
-    const voterKey = session?.user?.id || getVoterKey()
     const { error: err } = await supabase.from('votes').insert({
       suggestion_id: s.id,
-      voter_key: voterKey,
-      is_verified: !!session,
+      voter_key: session.user.id,
+      is_verified: true,
     })
     if (err && err.code !== '23505') { // ignore duplicate
       setError('Vote failed: ' + err.message)
@@ -102,9 +122,8 @@ export default function App() {
     const title = String(form.get('title') || '').trim()
     const description = String(form.get('description') || '').trim()
     const cat = String(form.get('category') || 'other')
-    const nick = String(form.get('nick') || '').trim()
     if (title.length < 8) { setError('Title too short (min 8 characters).'); return }
-    const author = displayName || nick || 'Anonymous farmer'
+    const author = displayName || 'Anonymous farmer'
     if (!hasBackend) { // demo: local only
       setSuggestions(prev => [{
         id: 'local-' + Date.now(), created_at: new Date().toISOString(),
@@ -153,7 +172,7 @@ export default function App() {
               <button className="btn ghost" onClick={signOut}>Sign out</button>
             </>
           ) : (
-            <button className="btn discord" onClick={signIn}>Sign in with Discord</button>
+            <button className="btn primary" onClick={() => { setEmailSent(''); setShowLogin(true) }}>Sign in</button>
           )}
         </div>
       </header>
@@ -171,7 +190,7 @@ export default function App() {
             <option value="top">Top voted</option>
             <option value="new">Newest</option>
           </select>
-          <button className="btn primary" onClick={() => { setError(''); setShowForm(true) }}>
+          <button className="btn primary" onClick={() => { setError(''); if (hasBackend && !session) { requireLogin(); return } setShowForm(true) }}>
             + New suggestion
           </button>
         </div>
@@ -229,12 +248,6 @@ export default function App() {
             <select name="category" defaultValue="qol">
               {CATEGORIES.filter(c => c.id !== 'all').map(c => <option key={c.id} value={c.id}>{c.label}</option>)}
             </select>
-            {!session && (
-              <>
-                <label>Your name (optional)</label>
-                <input name="nick" maxLength={40} placeholder="In-game name or leave empty" />
-              </>
-            )}
             <div className="actions">
               <button type="button" className="btn ghost" onClick={() => setShowForm(false)}>Cancel</button>
               <button type="submit" className="btn primary">Submit</button>
@@ -243,9 +256,32 @@ export default function App() {
         </div>
       )}
 
+      {showLogin && (
+        <div className="overlay" onClick={() => setShowLogin(false)}>
+          <div className="modal" onClick={e => e.stopPropagation()}>
+            <h2>Sign in to vote</h2>
+            <p className="muted">Reading is open to everyone. To vote or suggest, sign in — one account, one vote per idea.</p>
+            <button className="btn discord" style={{ width: '100%' }} onClick={signInDiscord}>Continue with Discord</button>
+            <div style={{ textAlign: 'center', margin: '12px 0', opacity: 0.6 }}>or</div>
+            {emailSent ? (
+              <p className="muted">Check <b>{emailSent}</b> for a login link, then come back to this tab.</p>
+            ) : (
+              <form onSubmit={signInEmail}>
+                <label>Email</label>
+                <input name="email" type="email" placeholder="you@example.com" required />
+                <div className="actions">
+                  <button type="button" className="btn ghost" onClick={() => setShowLogin(false)}>Cancel</button>
+                  <button type="submit" className="btn primary">Email me a link</button>
+                </div>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
+
       <footer>
         Community project by Ficey · not affiliated with the Pixels team ·
-        one vote per idea per person
+        sign in with Discord or email · one vote per idea per person
       </footer>
     </div>
   )

@@ -63,11 +63,15 @@ create policy "read suggestions" on suggestions for select using (true);
 create policy "read votes" on votes for select using (true);
 create policy "read admins" on app_admins for select using (true);
 
--- svi mogu da dodaju predlog (constrainti na tabeli ograničavaju sadržaj)
-create policy "insert suggestions" on suggestions for insert with check (true);
+-- samo ulogovani dodaju predlog, i to kao svoj author_id
+create policy "insert suggestions (authenticated)" on suggestions
+  for insert to authenticated
+  with check (author_id = auth.uid());
 
--- svi mogu da glasaju (unique constraint sprečava duplo glasanje po ključu)
-create policy "insert votes" on votes for insert with check (true);
+-- samo ulogovani glasaju, voter_key = njihov auth.uid() (unique sprečava duplo)
+create policy "insert votes (authenticated)" on votes
+  for insert to authenticated
+  with check (voter_key = auth.uid()::text);
 
 -- samo admin menja status (i ništa drugo ne može da se menja spolja)
 create policy "admin update suggestions" on suggestions for update
