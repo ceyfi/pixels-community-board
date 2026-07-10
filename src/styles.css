@@ -1,0 +1,56 @@
+:root{
+  --bg:#0f1410; --panel:#161d17; --panel2:#1d261e; --border:#2b3a2c;
+  --text:#e8f0e8; --muted:#8fa392; --green:#5dbb63; --green2:#3f8f46;
+  --amber:#d9a83c; --blue:#5b9dd9; --red:#d95b5b; --purple:#a97bd9;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;min-height:100vh}
+.wrap{max-width:860px;margin:0 auto;padding:28px 16px 80px}
+.demobar{background:rgba(217,168,60,.12);border:1px solid var(--amber);color:var(--amber);border-radius:8px;padding:9px 14px;font-size:13px;margin-bottom:16px;text-align:center}
+header{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:22px;flex-wrap:wrap}
+h1{font-size:24px;letter-spacing:-.4px}
+.tag{color:var(--muted);font-size:14px;margin-top:4px}
+.auth{display:flex;align-items:center;gap:10px}
+.who{color:var(--muted);font-size:13px}
+.btn{border:1px solid var(--border);background:var(--panel2);color:var(--text);border-radius:8px;padding:9px 14px;font-size:14px;cursor:pointer;transition:.15s}
+.btn:hover{border-color:var(--green)}
+.btn.primary{background:var(--green2);border-color:var(--green2);font-weight:700}
+.btn.primary:hover{background:var(--green)}
+.btn.ghost{background:transparent}
+.btn.discord{background:#5865F2;border-color:#5865F2;font-weight:600}
+.toolbar{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:18px}
+.cats{display:flex;gap:8px;flex-wrap:wrap}
+.chip{border:1px solid var(--border);background:var(--panel);color:var(--muted);border-radius:20px;padding:6px 14px;font-size:13px;cursor:pointer}
+.chip.active{background:var(--green2);color:#fff;border-color:var(--green2)}
+.right{display:flex;gap:10px;align-items:center}
+select{background:var(--panel2);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:8px 10px;font-size:13px}
+.list{display:flex;flex-direction:column;gap:12px}
+.card{display:flex;gap:14px;background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px}
+.votebox{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-width:56px;height:64px;background:var(--panel2);border:1px solid var(--border);border-radius:10px;color:var(--text);cursor:pointer;transition:.15s}
+.votebox:hover:not(:disabled){border-color:var(--green)}
+.votebox.voted{background:rgba(93,187,99,.15);border-color:var(--green);cursor:default}
+.votebox .arrow{font-size:13px;color:var(--green)}
+.votebox .count{font-size:17px;font-weight:700;font-variant-numeric:tabular-nums}
+.body{flex:1;min-width:0}
+.titlerow{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+.titlerow h3{font-size:16px;line-height:1.35}
+.status{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;padding:3px 9px;border-radius:12px;white-space:nowrap}
+.st-new{background:rgba(143,163,146,.15);color:var(--muted)}
+.st-considering{background:rgba(217,168,60,.15);color:var(--amber)}
+.st-planned{background:rgba(91,157,217,.15);color:var(--blue)}
+.st-done{background:rgba(93,187,99,.18);color:var(--green)}
+.st-declined{background:rgba(217,91,91,.15);color:var(--red)}
+.desc{color:var(--muted);font-size:14px;margin-top:6px;line-height:1.5;white-space:pre-wrap}
+.meta{display:flex;gap:14px;align-items:center;margin-top:10px;color:var(--muted);font-size:12px;flex-wrap:wrap}
+.cat{color:var(--purple)}
+.error{background:rgba(217,91,91,.12);border:1px solid var(--red);color:var(--red);border-radius:8px;padding:10px 14px;margin-bottom:14px;font-size:13px;cursor:pointer}
+.muted{color:var(--muted)} .center{text-align:center;padding:30px 0}
+.overlay{position:fixed;inset:0;background:rgba(0,0,0,.6);display:flex;align-items:center;justify-content:center;padding:16px;z-index:10}
+.modal{background:var(--panel);border:1px solid var(--border);border-radius:14px;padding:24px;width:100%;max-width:480px}
+.modal h2{font-size:18px;margin-bottom:6px}
+.modal label{display:block;font-size:12px;color:var(--muted);margin:14px 0 5px}
+.modal input,.modal textarea,.modal select{width:100%;background:var(--panel2);border:1px solid var(--border);border-radius:8px;color:var(--text);padding:10px 12px;font-size:14px;outline:none;font-family:inherit}
+.modal input:focus,.modal textarea:focus{border-color:var(--green)}
+.actions{display:flex;justify-content:flex-end;gap:10px;margin-top:20px}
+footer{text-align:center;color:var(--muted);font-size:12px;margin-top:40px}
+@media(max-width:560px){.titlerow{flex-direction:column}.card{padding:12px}}
