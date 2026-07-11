@@ -163,7 +163,7 @@ export default function App() {
       <header>
         <div>
           <h1>🌱 Pixels Community Board</h1>
-          <p className="tag">Suggest it. Vote it. Help the team see what players actually want.</p>
+          <p className="tag">Suggest it. Vote it. See what the community wants most.</p>
         </div>
         <div className="auth">
           {session ? (
@@ -191,7 +191,7 @@ export default function App() {
             <option value="new">Newest</option>
           </select>
           <button className="btn primary" onClick={() => { setError(''); if (hasBackend && !session) { requireLogin(); return } setShowForm(true) }}>
-            + New suggestion
+            + Share an idea
           </button>
         </div>
       </div>
@@ -238,7 +238,7 @@ export default function App() {
       {showForm && (
         <div className="overlay" onClick={() => setShowForm(false)}>
           <form className="modal" onClick={e => e.stopPropagation()} onSubmit={submit}>
-            <h2>New suggestion</h2>
+            <h2>Share an idea</h2>
             <label>Title</label>
             <input name="title" maxLength={120} placeholder="e.g. Permanent Infiniportable as a chase item" required />
             <label>Details (optional)</label>
