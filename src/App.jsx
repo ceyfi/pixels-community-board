@@ -53,14 +53,14 @@ export default function App() {
   }
   const signInDiscord = () => {
     if (!hasBackend) { setError('Demo mode — Discord login works once Supabase is connected.'); return }
-    supabase.auth.signInWithOAuth({ provider: 'discord', options: { redirectTo: window.location.origin } })
+    supabase.auth.signInWithOAuth({ provider: 'discord', options: { redirectTo: window.location.origin + window.location.pathname } })
   }
   async function signInEmail(e) {
     e.preventDefault()
     const email = String(new FormData(e.target).get('email') || '').trim()
     if (!email) return
     const { error: err } = await supabase.auth.signInWithOtp({
-      email, options: { emailRedirectTo: window.location.origin },
+      email, options: { emailRedirectTo: window.location.origin + window.location.pathname },
     })
     if (err) setError('Email login failed: ' + err.message)
     else setEmailSent(email)
